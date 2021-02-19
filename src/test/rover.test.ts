@@ -1,20 +1,17 @@
 import {Rover, RoverCommandEnum, RoverDirectionEnum} from "../rover";
 import {Planet} from "../planet";
+import {Coordinates} from "../coordinates";
+import {Obstacle} from "../obstacle";
 
 describe('rover', () => {
 
     describe('rover should be initialized properly', () => {
-        it('should have x attribute defined', (done) => {
-            const rover = new Rover(4, 1, RoverDirectionEnum.N);
-            expect(rover.x).toBeDefined();
-            expect(rover.getX()).toEqual(4);
-            done();
-        });
 
-        it('should have y attribute defined', (done) => {
-            const rover = new Rover(3, 2, RoverDirectionEnum.N);
-            expect(rover.y).toBeDefined();
-            expect(rover.getY()).toEqual(2);
+        it('should have coordinates', (done) => {
+            const dummyCoordinates = new Coordinates(0, 0);
+            const rover = new Rover(0, 0, RoverDirectionEnum.N);
+            expect(rover.coordinates).toBeDefined();
+            expect(rover.getCoordinates()).toEqual(dummyCoordinates);
             done();
         });
 
@@ -28,34 +25,34 @@ describe('rover', () => {
 
     describe('rover should be able to move forward or backward', () => {
         it('should move forward facing east', (done) => {
+            const expectedCoordinates = new Coordinates(4, 4);
             const rover = new Rover(3, 4, RoverDirectionEnum.E);
             rover.moveForward();
-            expect(rover.getX()).toEqual(4);
-            expect(rover.getY()).toEqual(4);
+            expect(rover.getCoordinates()).toEqual(expectedCoordinates);
             done();
         });
 
         it('should move backward facing west', (done) => {
+            const expectedCoordinates = new Coordinates(6, 6);
             const rover = new Rover(5, 6, RoverDirectionEnum.W);
             rover.moveBackward();
-            expect(rover.getX()).toEqual(6);
-            expect(rover.getY()).toEqual(6);
+            expect(rover.getCoordinates()).toEqual(expectedCoordinates);
             done();
         });
 
         it('should move forward facing north', (done) => {
+            const expectedCoordinates = new Coordinates(1, 3);
             const rover = new Rover(1, 2, RoverDirectionEnum.N);
             rover.moveForward();
-            expect(rover.getX()).toEqual(1);
-            expect(rover.getY()).toEqual(3);
+            expect(rover.getCoordinates()).toEqual(expectedCoordinates);
             done();
         });
 
         it('should move backward facing north', (done) => {
+            const expectedCoordinates = new Coordinates(1, 1);
             const rover = new Rover(1, 2, RoverDirectionEnum.N);
             rover.moveBackward();
-            expect(rover.getX()).toEqual(1);
-            expect(rover.getY()).toEqual(1);
+            expect(rover.getCoordinates()).toEqual(expectedCoordinates);
             done();
         });
     });
@@ -136,16 +133,18 @@ describe('rover', () => {
         });
 
         it('should move backward', (done) => {
+            const expectedCoordinates = new Coordinates(1, 4);
             const rover = new Rover(1, 3, RoverDirectionEnum.S);
             rover.executeCommand(RoverCommandEnum.MOVE_BACKWARD);
-            expect(rover.getY()).toEqual(4);
+            expect(rover.getCoordinates()).toEqual(expectedCoordinates);
             done();
         });
 
         it('should move forward', (done) => {
+            const expectedCoordinates = new Coordinates(2, 3);
             const rover = new Rover(1, 3, RoverDirectionEnum.E);
             rover.executeCommand(RoverCommandEnum.MOVE_FORWARD);
-            expect(rover.getX()).toEqual(2);
+            expect(rover.getCoordinates()).toEqual(expectedCoordinates);
             done();
         });
 
@@ -153,24 +152,27 @@ describe('rover', () => {
 
     describe('rover should handle array of commands', () => {
         it('should turn to the right from west to north then move forward', (done) => {
+            const expectedCoordinates = new Coordinates(1, 4);
             const rover = new Rover(1, 3, RoverDirectionEnum.W);
             const roverCommands = [RoverCommandEnum.TURN_RIGHT, RoverCommandEnum.MOVE_FORWARD];
             rover.executeCommands(roverCommands);
             expect(rover.getDirection()).toEqual(RoverDirectionEnum.N);
-            expect(rover.getY()).toEqual(4);
+            expect(rover.getCoordinates()).toEqual(expectedCoordinates);
             done();
         });
 
         it('should turn to the left from south to east then move backward', (done) => {
+            const expectedCoordinates = new Coordinates(0, 3);
             const rover = new Rover(1, 3, RoverDirectionEnum.S);
             const roverCommands = [RoverCommandEnum.TURN_LEFT, RoverCommandEnum.MOVE_BACKWARD];
             rover.executeCommands(roverCommands);
             expect(rover.getDirection()).toEqual(RoverDirectionEnum.E);
-            expect(rover.getX()).toEqual(0);
+            expect(rover.getCoordinates()).toEqual(expectedCoordinates);
             done();
         });
 
         it('should turn to the left from south to east then move backward then turn right twice and move forward', (done) => {
+            const expectedCoordinates = new Coordinates(-1, 3);
             const rover = new Rover(1, 3, RoverDirectionEnum.S);
             const roverCommands = [
                 RoverCommandEnum.TURN_LEFT,
@@ -181,8 +183,7 @@ describe('rover', () => {
             ];
             rover.executeCommands(roverCommands);
             expect(rover.getDirection()).toEqual(RoverDirectionEnum.W);
-            expect(rover.getX()).toEqual(-1);
-            expect(rover.getY()).toEqual(3)
+            expect(rover.getCoordinates()).toEqual(expectedCoordinates);
             done();
         });
 
@@ -190,35 +191,111 @@ describe('rover', () => {
 
     describe('rover should handle correctly a rotation around the planet', () => {
         it('should return to the opposite side if you reach the limit of the planet', (done) => {
+            const expectedCoordinates = new Coordinates(5, 3);
             const planet = new Planet(5);
-            const rover = new Rover(1, 3, RoverDirectionEnum.W);
+            const rover = new Rover(1, 3, RoverDirectionEnum.W, planet);
             rover.moveForward();
-            expect(rover.getX()).toEqual(5);
+            expect(rover.getCoordinates()).toEqual(expectedCoordinates);
             done();
         });
 
         it('should return to the opposite side if you reach the limit of the planet', (done) => {
+            const expectedCoordinates = new Coordinates(1, 1);
             const planet = new Planet(5);
-            const rover = new Rover(5, 1, RoverDirectionEnum.E);
+            const rover = new Rover(5, 1, RoverDirectionEnum.E, planet);
             rover.moveForward();
-            expect(rover.getX()).toEqual(1);
+            expect(rover.getCoordinates()).toEqual(expectedCoordinates);
             done();
         });
 
         it('should return to the opposite side if you reach the limit of the planet', (done) => {
+            const expectedCoordinates = new Coordinates(1, 1);
             const planet = new Planet(5);
-            const rover = new Rover(1, 5, RoverDirectionEnum.N);
+            const rover = new Rover(1, 5, RoverDirectionEnum.N, planet);
             rover.moveForward();
-            expect(rover.getY()).toEqual(1);
+            expect(rover.getCoordinates()).toEqual(expectedCoordinates);
             done();
         });
 
         it('should return to the opposite side if you reach the limit of the planet', (done) => {
+            const expectedCoordinates = new Coordinates(1, 5)
             const planet = new Planet(5);
-            const rover = new Rover(1, 1, RoverDirectionEnum.S);
+            const rover = new Rover(1, 1, RoverDirectionEnum.S, planet);
             rover.moveForward();
-            expect(rover.getY()).toEqual(5);
+            expect(rover.getCoordinates()).toEqual(expectedCoordinates);
             done();
         });
     });
+    describe('rover moves up to the last possible point, aborts the sequence and reports the obstacle', () => {
+        it('should return true because there\'s an obstacle at this coords', (done) => {
+            const obstacles = [
+                new Obstacle(
+                    new Coordinates(3, 8),
+                    new Coordinates(3, 7),
+                    new Coordinates(4, 7),
+                    new Coordinates(4, 8),
+                ),
+            ];
+            const planet = new Planet(10, obstacles);
+            const rover = new Rover(2, 7, RoverDirectionEnum.N, planet);
+            const coordinatesToObserve = new Coordinates(3, 7);
+            expect(rover.detectObstacleAt(coordinatesToObserve)).toEqual(true);
+            done();
+        });
+
+        it('should return false because there\'s no obstacle at this coords', (done) => {
+            const obstacles = [
+                new Obstacle(
+                    new Coordinates(3, 8),
+                    new Coordinates(3, 7),
+                    new Coordinates(4, 7),
+                    new Coordinates(4, 8),
+                ),
+            ];
+            const planet = new Planet(10, obstacles);
+            const rover = new Rover(2, 7, RoverDirectionEnum.N, planet);
+            const coordinatesToObserve = new Coordinates(1, 1);
+            expect(rover.detectObstacleAt(coordinatesToObserve)).toEqual(false);
+            done();
+        });
+
+        it('should return an exception when rover encounters an obstacle', (done) => {
+            const obstacles = [
+                new Obstacle(
+                    new Coordinates(3, 8),
+                    new Coordinates(3, 7),
+                    new Coordinates(4, 7),
+                    new Coordinates(4, 8),
+                ),
+                new Obstacle(
+                    new Coordinates(2, 3),
+                    new Coordinates(2, 2),
+                    new Coordinates(4, 3),
+                    new Coordinates(4, 2)
+                ),
+                new Obstacle(
+                    new Coordinates(5, 5),
+                    new Coordinates(5, 3),
+                    new Coordinates(6, 5),
+                    new Coordinates(6, 3)
+                ),
+            ];
+            const planet = new Planet(10, obstacles);
+            const rover = new Rover(2, 7, RoverDirectionEnum.N, planet);
+            const coordinatesBeforeObstacle = new Coordinates(2, 7);
+            const roverCommands = [
+                RoverCommandEnum.TURN_LEFT,
+                RoverCommandEnum.MOVE_BACKWARD,
+                RoverCommandEnum.TURN_RIGHT,
+                RoverCommandEnum.TURN_RIGHT,
+                RoverCommandEnum.MOVE_FORWARD,
+            ];
+            expect(() => rover.executeCommands(roverCommands))
+                .toThrow(new Error('Obstacle encoutered !'));
+            expect(rover.getCoordinates()).toEqual(coordinatesBeforeObstacle);
+            done();
+        });
+
+
+    })
 });

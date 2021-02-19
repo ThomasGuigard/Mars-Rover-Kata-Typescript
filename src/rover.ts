@@ -1,82 +1,124 @@
+import {Planet} from "./planet";
+import {Coordinates} from "./coordinates";
+import {Obstacle} from "./obstacle";
+
 export class Rover {
-    x: number;
-    y: number;
+    coordinates: Coordinates;
     direction: RoverDirectionEnum;
+    planet: Planet;
 
-    constructor(x: number, y: number, direction: RoverDirectionEnum) {
-        this.x = x;
-        this.y = y;
+    constructor(x: number, y:number, direction: RoverDirectionEnum, planet?: Planet) {
+        this.coordinates = new Coordinates(x, y);
         this.direction = direction;
+        this.planet = planet;
     }
 
-    getX(): number {
-        return this.x;
+    setCoordinates(coordinates: Coordinates): void {
+        this.coordinates = coordinates;
     }
 
-    getY(): number {
-        return this.y;
+    getCoordinates(): Coordinates {
+        return this.coordinates;
     }
 
     getDirection(): RoverDirectionEnum {
         return this.direction;
     }
 
-    moveBackward() {
+    private move(forward: boolean = true) {
+        let x: number = this.coordinates.getX();
+        let y: number = this.coordinates.getY();
+
         if (this.direction === RoverDirectionEnum.N) {
-            this.y = this.y - 1;
+            (forward) ? y++ : y--;
         }
         if (this.direction === RoverDirectionEnum.E) {
-            this.x = this.x - 1;
+            (forward) ? x++ : x--;
         }
         if (this.direction === RoverDirectionEnum.S) {
-            this.y = this.y + 1;
+            (forward) ? y-- : y++;
         }
         if (this.direction === RoverDirectionEnum.W) {
-            this.x = this.x + 1;
+            (forward) ? x-- : x++;
         }
+
+        if (this.planet) {
+            if (x > this.planet.getSize()) {
+                x = 1;
+            }
+            if (y > this.planet.getSize()) {
+                y = 1;
+            }
+            if (x < 1) {
+                x = this.planet.getSize();
+            }
+            if (y < 1) {
+                y = this.planet.getSize();
+            }
+
+            if(this.detectObstacleAt(new Coordinates(x, y))) {
+                throw new Error('Obstacle encoutered !');
+            }
+        }
+
+        this.setCoordinates(new Coordinates(x, y));
+    }
+
+    private turn(right: boolean = true) {
+        let direction = this.direction;
+        if (this.direction === RoverDirectionEnum.N) {
+            direction = (right) ? RoverDirectionEnum.E : RoverDirectionEnum.W;
+        }
+        if (this.direction === RoverDirectionEnum.E) {
+            direction = right
+                ? RoverDirectionEnum.S
+                : RoverDirectionEnum.N;
+        }
+        if (this.direction === RoverDirectionEnum.S) {
+            direction = right
+                ? RoverDirectionEnum.W
+                : RoverDirectionEnum.E;
+        }
+        if (this.direction === RoverDirectionEnum.W) {
+            direction = right
+                ? RoverDirectionEnum.N
+                : RoverDirectionEnum.S;
+        }
+        this.direction = direction;
+    }
+
+     detectObstacleAt(coordinates: Coordinates): boolean {
+        return this.planet
+            .getObstacles()
+            .some(o => Object
+                .keys(o)
+                .some(k => coordinates.equalsTo(o[k]))
+            );
+    }
+
+    moveBackward() {
+        this.move(false);
     }
 
     moveForward(): void {
-        if (this.direction === RoverDirectionEnum.N) {
-            this.y = this.y + 1;
-        }
-        if (this.direction === RoverDirectionEnum.E) {
-            this.x = this.x + 1;
-        }
-        if (this.direction === RoverDirectionEnum.S) {
-            this.y = this.y - 1;
-        }
-        if (this.direction === RoverDirectionEnum.W) {
-            this.x = this.x - 1;
-        }
+        this.move();
     }
 
     turnLeft(): void {
-        if (this.direction === RoverDirectionEnum.N) {
-            this.direction = RoverDirectionEnum.W;
-        } else if (this.direction === RoverDirectionEnum.E) {
-            this.direction = RoverDirectionEnum.N;
-        } else if (this.direction === RoverDirectionEnum.S) {
-            this.direction = RoverDirectionEnum.E;
-        } else if (this.direction === RoverDirectionEnum.W) {
-            this.direction = RoverDirectionEnum.S;
-        }
+        this.turn(false);
     }
 
     turnRight(): void {
-        if (this.direction === RoverDirectionEnum.N) {
-            this.direction = RoverDirectionEnum.E;
-        } else if (this.direction === RoverDirectionEnum.E) {
-            this.direction = RoverDirectionEnum.S;
-        } else if (this.direction === RoverDirectionEnum.S) {
-            this.direction = RoverDirectionEnum.W;
-        } else if (this.direction === RoverDirectionEnum.W) {
-            this.direction = RoverDirectionEnum.N;
-        }
+        this.turn();
     }
 
     executeCommands(commands: RoverCommandEnum[]): void {
-        commands.forEach(command => this.executeCommand(command));
+        try {
+            commands.forEach(command => this.executeCommand(command));
+        } catch (e) {
+            console.log(`An error occured : ${e.message}`)
+            throw e;
+        }
     }
 
     executeCommand(command: RoverCommandEnum): void {
@@ -90,6 +132,8 @@ export class Rover {
             this.moveBackward();
         }
     }
+
+
 }
 
 export enum RoverDirectionEnum {
